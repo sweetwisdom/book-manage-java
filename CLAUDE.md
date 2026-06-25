@@ -25,9 +25,10 @@ src/main/java/com/example/bookmanage/
 
 ## 技术栈
 - Spring Boot 2.7.6
-- MyBatis 2.3.1
+- MyBatis-Plus 3.5.15
 - MySQL
 - Hutool 5.8.35
+- Lombok 1.18.36
 
 ## 常用命令
 ```bash
