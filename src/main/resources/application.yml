@@ -1,0 +1,17 @@
+server:
+  port: 8080
+#  servlet:
+#    context-path: /api
+
+spring:
+  application:
+    name: my-app
+  datasource:
+    url: jdbc:mysql://localhost:3306/test
+    username: root
+    password: ${DB_PASSWORD:123456}  # 环境变量，默认值
+
+logging:
+  level:
+    root: INFO
+    com.example: DEBUG
