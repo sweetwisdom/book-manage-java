@@ -23,7 +23,7 @@ public class UserService {
      * 获取所有用户
      */
     public List<UserVO> getAllUsers() {
-        List<User> users = userMapper.findAll();
+        List<User> users = userMapper.selectList(null);
         return users.stream()
                 .map(this::convertToVO)
                 .collect(Collectors.toList());
@@ -33,7 +33,7 @@ public class UserService {
      * 根据ID获取用户
      */
     public UserVO getUserById(Long id) {
-        User user = userMapper.findById(id);
+        User user = userMapper.selectById(id);
         if (user == null) {
             return null;
         }
