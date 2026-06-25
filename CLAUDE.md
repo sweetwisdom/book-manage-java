@@ -12,7 +12,9 @@ src/main/java/com/example/bookmanage/
 ├── controller/                     # 控制器层 - 接收请求
 │   └── BasicController.java
 ├── service/                        # 业务层 - 业务逻辑
-│   └── UserService.java
+│   ├── UserService.java            # 接口
+│   └── impl/
+│       └── UserServiceImpl.java    # 实现类
 ├── mapper/                         # 数据层 - 数据库操作
 │   └── UserMapper.java
 ├── entity/                         # 实体层 - 数据库表对应
