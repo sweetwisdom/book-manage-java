@@ -3,6 +3,7 @@ package com.example.bookmanage.controller;
 import com.example.bookmanage.dto.UserDTO;
 import com.example.bookmanage.service.UserService;
 import com.example.bookmanage.vo.UserVO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,6 +12,7 @@ import java.util.List;
 /**
  * 基础控制器 - 处理用户相关请求
  */
+@Slf4j
 @RestController
 @RequestMapping("/api")
 public class BasicController {
@@ -24,6 +26,8 @@ public class BasicController {
      */
     @GetMapping("/users")
     public List<UserVO> getAllUsers() {
+        log.info("❤️用户新增");
+        System.out.println("❤️❤️❤️"+ userService.count());
         return userService.getAllUsers();
     }
 

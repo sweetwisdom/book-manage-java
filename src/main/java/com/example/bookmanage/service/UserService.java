@@ -1,6 +1,8 @@
 package com.example.bookmanage.service;
 
+import com.baomidou.mybatisplus.extension.service.IService;
 import com.example.bookmanage.dto.UserDTO;
+import com.example.bookmanage.entity.User;
 import com.example.bookmanage.vo.UserVO;
 
 import java.util.List;
@@ -8,7 +10,7 @@ import java.util.List;
 /**
  * 用户Service接口 - 定义业务契约
  */
-public interface UserService {
+public interface UserService extends IService<User> {
 
     /**
      * 获取所有用户

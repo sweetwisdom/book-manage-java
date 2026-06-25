@@ -1,5 +1,6 @@
 package com.example.bookmanage.service.impl;
 
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.bookmanage.dto.UserDTO;
 import com.example.bookmanage.entity.User;
 import com.example.bookmanage.mapper.UserMapper;
@@ -15,7 +16,7 @@ import java.util.stream.Collectors;
  * 用户Service实现类 - 业务逻辑实现
  */
 @Service
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl  extends ServiceImpl<UserMapper,User> implements  UserService {
 
     @Autowired
     private UserMapper userMapper;
