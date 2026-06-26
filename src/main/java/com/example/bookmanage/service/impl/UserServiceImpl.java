@@ -1,11 +1,11 @@
 package com.example.bookmanage.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.example.bookmanage.dto.UserDTO;
-import com.example.bookmanage.entity.User;
-import com.example.bookmanage.mapper.UserMapper;
+import com.example.bookmanage.model.dto.UserDTO;
+import com.example.bookmanage.model.entity.User;
+import com.example.bookmanage.model.mapper.UserMapper;
 import com.example.bookmanage.service.UserService;
-import com.example.bookmanage.vo.UserVO;
+import com.example.bookmanage.model.vo.UserVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

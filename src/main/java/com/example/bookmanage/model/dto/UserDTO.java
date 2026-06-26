@@ -1,23 +1,14 @@
-package com.example.bookmanage.vo;
+package com.example.bookmanage.model.dto;
 
 /**
- * 用户VO - 返回给前端
+ * 用户DTO - 接收前端数据
  */
-public class UserVO {
+public class UserDTO {
 
-    private Long id;
     private String name;
     private Integer age;
 
     // Getters and Setters
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public String getName() {
         return name;
     }

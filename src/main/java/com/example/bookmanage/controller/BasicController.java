@@ -1,8 +1,8 @@
 package com.example.bookmanage.controller;
 
-import com.example.bookmanage.dto.UserDTO;
+import com.example.bookmanage.model.dto.UserDTO;
 import com.example.bookmanage.service.UserService;
-import com.example.bookmanage.vo.UserVO;
+import com.example.bookmanage.model.vo.UserVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

@@ -1,9 +1,9 @@
 package com.example.bookmanage.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.example.bookmanage.dto.UserDTO;
-import com.example.bookmanage.entity.User;
-import com.example.bookmanage.vo.UserVO;
+import com.example.bookmanage.model.dto.UserDTO;
+import com.example.bookmanage.model.entity.User;
+import com.example.bookmanage.model.vo.UserVO;
 
 import java.util.List;
 

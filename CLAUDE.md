@@ -10,29 +10,27 @@
 src/main/java/com/example/bookmanage/
 ├── BookManageApplication.java      # 启动类
 ├── common/                         # 公共组件
-│   ├── response/
-│   │   └── ApiResponse.java        # 统一响应格式
-│   └── exception/
-│       ├── BusinessException.java  # 自定义业务异常
-│       └── GlobalExceptionHandler.java # 全局异常处理器
-├── config/                         # 配置类
-├── constant/                       # 常量类
+│   ├── config/                     # 配置类
+│   ├── constant/                   # 常量类
+│   ├── exception/                  # 异常处理
+│   ├── response/                   # 统一响应格式
+│   └── utils/                      # 工具类
 ├── controller/                     # 控制器层 - 接收请求
 │   └── BasicController.java
-├── dto/                            # 数据传输对象 - 接收前端数据
-│   └── UserDTO.java
-├── entity/                         # 实体层 - 数据库表对应
-│   └── User.java
-├── enums/                          # 枚举类
-├── mapper/                         # 数据层 - 数据库操作
-│   └── UserMapper.java
-├── service/                        # 业务层 - 业务逻辑
-│   ├── UserService.java            # 接口
-│   └── impl/
-│       └── UserServiceImpl.java    # 实现类
-├── utils/                          # 工具类
-└── vo/                             # 视图对象 - 返回给前端
-    └── UserVO.java
+├── model/                          # 数据模型层
+│   ├── dto/                        # 数据传输对象 - 接收前端数据
+│   │   └── UserDTO.java
+│   ├── entity/                     # 实体层 - 数据库表对应
+│   │   └── User.java
+│   ├── enums/                      # 枚举类
+│   ├── mapper/                     # 数据层 - 数据库操作
+│   │   └── UserMapper.java
+│   └── vo/                         # 视图对象 - 返回给前端
+│       └── UserVO.java
+└── service/                        # 业务层 - 业务逻辑
+    ├── UserService.java            # 接口
+    └── impl/
+        └── UserServiceImpl.java    # 实现类
 ```
 
 ## 技术栈
