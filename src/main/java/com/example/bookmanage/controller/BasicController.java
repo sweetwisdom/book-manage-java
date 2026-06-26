@@ -1,11 +1,14 @@
 package com.example.bookmanage.controller;
 
+import com.example.bookmanage.common.response.ApiResponse;
 import com.example.bookmanage.model.dto.UserDTO;
-import com.example.bookmanage.service.UserService;
 import com.example.bookmanage.model.vo.UserVO;
+import com.example.bookmanage.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
 
 import java.util.List;
 
@@ -25,10 +28,9 @@ public class BasicController {
      * GET /api/users
      */
     @GetMapping("/users")
-    public List<UserVO> getAllUsers() {
-        log.info("❤️用户新增");
-        System.out.println("❤️❤️❤️"+ userService.count());
-        return userService.getAllUsers();
+    public ApiResponse<List<UserVO>> getAllUsers() {
+        log.info("获取所有用户");
+        return ApiResponse.success(userService.getAllUsers());
     }
 
     /**
@@ -36,8 +38,8 @@ public class BasicController {
      * GET /api/users/{id}
      */
     @GetMapping("/users/{id}")
-    public UserVO getUserById(@PathVariable Long id) {
-        return userService.getUserById(id);
+    public ApiResponse<UserVO> getUserById(@PathVariable Long id) {
+        return ApiResponse.success(userService.getUserById(id));
     }
 
     /**
@@ -45,7 +47,8 @@ public class BasicController {
      * POST /api/users
      */
     @PostMapping("/users")
-    public UserVO createUser(@RequestBody UserDTO userDTO) {
-        return userService.createUser(userDTO);
+    public ApiResponse<UserVO> createUser(@Valid @RequestBody UserDTO userDTO) {
+        log.info("创建用户: {}", userDTO.getName());
+        return ApiResponse.success(userService.createUser(userDTO));
     }
 }
