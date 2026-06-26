@@ -9,6 +9,12 @@
 ```
 src/main/java/com/example/bookmanage/
 ├── BookManageApplication.java      # 启动类
+├── common/                         # 公共组件
+│   ├── response/
+│   │   └── ApiResponse.java        # 统一响应格式
+│   └── exception/
+│       ├── BusinessException.java  # 自定义业务异常
+│       └── GlobalExceptionHandler.java # 全局异常处理器
 ├── controller/                     # 控制器层 - 接收请求
 │   └── BasicController.java
 ├── service/                        # 业务层 - 业务逻辑
