@@ -15,18 +15,22 @@ src/main/java/com/example/bookmanage/
 │   └── exception/
 │       ├── BusinessException.java  # 自定义业务异常
 │       └── GlobalExceptionHandler.java # 全局异常处理器
+├── config/                         # 配置类
+├── constant/                       # 常量类
 ├── controller/                     # 控制器层 - 接收请求
 │   └── BasicController.java
+├── dto/                            # 数据传输对象 - 接收前端数据
+│   └── UserDTO.java
+├── entity/                         # 实体层 - 数据库表对应
+│   └── User.java
+├── enums/                          # 枚举类
+├── mapper/                         # 数据层 - 数据库操作
+│   └── UserMapper.java
 ├── service/                        # 业务层 - 业务逻辑
 │   ├── UserService.java            # 接口
 │   └── impl/
 │       └── UserServiceImpl.java    # 实现类
-├── mapper/                         # 数据层 - 数据库操作
-│   └── UserMapper.java
-├── entity/                         # 实体层 - 数据库表对应
-│   └── User.java
-├── dto/                            # 数据传输对象 - 接收前端数据
-│   └── UserDTO.java
+├── utils/                          # 工具类
 └── vo/                             # 视图对象 - 返回给前端
     └── UserVO.java
 ```
