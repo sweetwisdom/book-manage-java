@@ -1,0 +1,498 @@
+$ErrorActionPreference = "Stop"
+try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch {}
+
+# --- PS 版本检测与兼容函数 ---
+$PSVer = $PSVersionTable.PSVersion.Major
+
+function Http-Get($url) {
+    if ($PSVer -ge 3) {
+        return Invoke-RestMethod -Uri $url -Method Get -TimeoutSec 5
+    }
+    $wc = New-Object System.Net.WebClient
+    try { $wc.Encoding = [System.Text.Encoding]::UTF8 } catch {}
+    $wc.DownloadString($url)
+}
+
+function Http-PostJson($url, $json) {
+    if ($PSVer -ge 3) {
+        return Invoke-RestMethod -Uri $url -Method Post -Body $json -ContentType "application/json; charset=utf-8" -TimeoutSec 10
+    }
+    $wc = New-Object System.Net.WebClient
+    try { $wc.Encoding = [System.Text.Encoding]::UTF8 } catch {}
+    $wc.Headers.Add("Content-Type", "application/json; charset=utf-8")
+    $resp = $wc.UploadString($url, "POST", $json)
+    # PS 2.0 UploadString 返回 string, 尝试解析 JSON
+    try {
+        Add-Type -AssemblyName System.Web.Extensions
+        $ser = New-Object System.Web.Script.Serialization.JavaScriptSerializer
+        $ser.DeserializeObject($resp)
+    } catch {
+        $resp
+    }
+}
+
+function Json-Escape($s) {
+    if ($s -eq $null) { return "" }
+    $s = "$s"
+    $s = $s -replace '\\', '\\'
+    $s = $s -replace '"', '\"'
+    $s = $s -replace [char]10, '\n'
+    $s = $s -replace [char]13, '\r'
+    $s = $s -replace [char]9, '\t'
+    return $s
+}
+
+function Build-Json($obj) {
+    if ($PSVer -ge 3) {
+        return $obj | ConvertTo-Json -Compress
+    }
+    # PS 2.0 手动拼接 JSON
+    $parts = @()
+    foreach ($key in $obj.Keys) {
+        $val = Json-Escape $obj[$key]
+        $parts += ('"' + $key + '":"' + $val + '"')
+    }
+    return "{" + ($parts -join ",") + "}"
+}
+
+function Get-CimOrWmi {
+    param([string]$ClassName)
+    if ($PSVer -ge 3) {
+        return Get-CimInstance -ClassName $ClassName
+    }
+    return Get-WmiObject -Class $ClassName
+}
+
+
+function Read-ValueWithDefault {
+    param([string]$Default = "")
+    if ($Default -ne "") {
+        Write-Host "  回车确认: " -NoNewline -ForegroundColor Green
+        $buf = New-Object System.Text.StringBuilder -ArgumentList $Default
+        [Console]::Write($Default)
+        while ($true) {
+            $k = [Console]::ReadKey($true)
+            if ($k.Key -eq [ConsoleKey]::Enter) {
+                [Console]::WriteLine()
+                break
+            }
+            elseif ($k.Key -eq [ConsoleKey]::Escape) {
+                [Console]::WriteLine()
+                return $Default
+            }
+            elseif ($k.Key -eq [ConsoleKey]::Backspace -and $buf.Length -gt 0) {
+                $buf.Remove($buf.Length - 1, 1) | Out-Null
+                [Console]::Write([char]8 + " " + [char]8)
+            }
+            elseif (-not [char]::IsControl($k.KeyChar)) {
+                $buf.Append($k.KeyChar) | Out-Null
+                [Console]::Write($k.KeyChar)
+            }
+        }
+        $val = $buf.ToString()
+        if ([string]::IsNullOrWhiteSpace($val)) { return $Default }
+        return $val
+    } else {
+        $val = Read-Host "  请输入"
+    }
+    if ([string]::IsNullOrWhiteSpace($val)) { return $Default }
+    return $val
+}
+
+function Select-Menu {
+    param([string[]]$Items)
+    for ($i = 0; $i -lt $Items.Count; $i++) {
+        Write-Host "  [$($i+1)] $($Items[$i])"
+    }
+    while ($true) {
+        $sel = Read-Host "  请输入序号 (1-$($Items.Count))"
+        $num = 0
+        if ([int]::TryParse($sel, [ref]$num) -and $num -ge 1 -and $num -le $Items.Count) {
+            return $num - 1
+        }
+        Write-Host "  [-] 无效输入, 请输入 1-$($Items.Count) 的数字" -ForegroundColor Red
+    }
+}
+
+$ServerUrl = "http://itamhelper.tongyuan.cc"
+
+Write-Host ""
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host "  HardInfo-CLI 硬件信息采集脚本" -ForegroundColor Cyan
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host ""
+
+# --- Test server connection ---
+Write-Host "[*] 测试服务器连接..." -ForegroundColor Yellow
+try {
+    $pingResult = Http-Get "$ServerUrl/api/ping"
+    Write-Host "[+] 服务器连接成功" -ForegroundColor Green
+} catch {
+    Write-Host "[-] 无法连接到服务器: $ServerUrl" -ForegroundColor Red
+    Write-Host "    错误: $_" -ForegroundColor Red
+    exit 1
+}
+
+# 静默下载 Agent 和 Watchdog
+$agentDir = "$env:ProgramData\HardInfo"
+if (-not (Test-Path $agentDir)) { New-Item -ItemType Directory -Path $agentDir -Force | Out-Null }
+
+# 停止已运行的服务，释放文件锁
+foreach ($svcName in @("HardInfoAgent", "HardInfoGuard")) {
+    $svc = Get-Service -Name $svcName -ErrorAction SilentlyContinue
+    if ($svc -and $svc.Status -eq "Running") {
+        Stop-Service -Name $svcName -Force -ErrorAction SilentlyContinue
+    }
+}
+# 等待进程完全退出
+foreach ($procName in @("hardinfo-agent", "hardinfo-watchdog")) {
+    $proc = Get-Process -Name $procName -ErrorAction SilentlyContinue
+    if ($proc) {
+        $proc | Stop-Process -Force -ErrorAction SilentlyContinue
+        Start-Sleep -Seconds 2
+    }
+}
+
+$agentUrl = "$ServerUrl/api/agent/download/latest/windows"
+$agentPath = "$agentDir\hardinfo-agent.exe"
+
+try {
+    if ($PSVer -ge 3) {
+        Invoke-WebRequest -Uri $agentUrl -OutFile $agentPath -TimeoutSec 120
+    } else {
+        $wc = New-Object System.Net.WebClient
+        $wc.DownloadFile($agentUrl, $agentPath)
+    }
+} catch {
+    Write-Host "[-] Agent 下载失败: $_" -ForegroundColor Red
+    exit 1
+}
+
+# 静默下载 Watchdog
+$watchdogUrl = "$ServerUrl/api/watchdog/download/latest"
+$watchdogPath = "$agentDir\hardinfo-watchdog.exe"
+try {
+    if ($PSVer -ge 3) {
+        Invoke-WebRequest -Uri $watchdogUrl -OutFile $watchdogPath -TimeoutSec 120
+    } else {
+        $wc = New-Object System.Net.WebClient
+        $wc.DownloadFile($watchdogUrl, $watchdogPath)
+    }
+} catch {}
+
+Write-Host ""
+Write-Host ""
+
+# --- 采集序列号（提前用于匹配已有记录） ---
+$sn = ""
+try { $sn = (Get-CimOrWmi Win32_BIOS).SerialNumber.Trim() } catch {}
+
+# --- 查询已有记录 ---
+$existingDevice = $null
+if ($sn) {
+    try {
+        $checkResult = Http-Get "$ServerUrl/api/check-sn?sn=$([System.Uri]::EscapeDataString($sn))"
+        if ($checkResult -and $checkResult.exists) {
+            $existingDevice = $checkResult
+        }
+    } catch {}
+}
+
+# --- Collect user info ---
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host "  请填写基本信息" -ForegroundColor Cyan
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host ""
+
+$userName = ""
+$department = ""
+$assetCode = ""
+$location = ""
+
+if ($existingDevice) {
+    Write-Host "[+] 检测到已有记录 (序列号: $sn)" -ForegroundColor Green
+    Write-Host "  使用人:   $($existingDevice.user_name)" -ForegroundColor Yellow
+    Write-Host "  部门:     $($existingDevice.department)" -ForegroundColor Yellow
+    Write-Host "  资产编号: $($existingDevice.asset_code)" -ForegroundColor Yellow
+    Write-Host "  存放位置: $($existingDevice.location)" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "  [1] 确认以上信息正确"
+    Write-Host "  [2] 重新填写"
+    $sel = Read-Host "  请选择 (1-2)"
+    if ($sel -eq "2") {
+        $existingDevice = $null
+    } else {
+        $userName    = $existingDevice.user_name
+        $department  = $existingDevice.department
+        $assetCode   = $existingDevice.asset_code
+        $location    = $existingDevice.location
+    }
+}
+
+if (-not $existingDevice) {
+    $userName = Read-Host "请输入使用人姓名"
+    if ([string]::IsNullOrWhiteSpace($userName)) {
+        Write-Host "[-] 使用人姓名不能为空" -ForegroundColor Red
+        exit 1
+    }
+
+    # --- Auto-fill department from personnel database ---
+    try {
+        $pResult = Http-Get "$ServerUrl/api/find-personnel?name=$([System.Uri]::EscapeDataString($userName))"
+        if ($pResult) {
+            if ($pResult.Count -eq 1) {
+                $department = $pResult[0].department
+                Write-Host "[+] 已找到部门: $department (回车确认, 可修改)" -ForegroundColor Green
+                Write-Host "  部门: " -NoNewline -ForegroundColor Yellow
+                $newDept = Read-ValueWithDefault $department
+                if (-not [string]::IsNullOrWhiteSpace($newDept)) {
+                    $department = $newDept
+                }
+            } elseif ($pResult.Count -gt 1) {
+                Write-Host "[*] 找到多个部门, 请选择:" -ForegroundColor Yellow
+                $deptMenuItems = @()
+                foreach ($p in $pResult) { $deptMenuItems += $p.department }
+                $deptMenuItems += "[手动输入]"
+                $deptSel = Select-Menu $deptMenuItems
+                if ($deptSel -lt $pResult.Count) {
+                    $department = $pResult[$deptSel].department
+                }
+            }
+        }
+    } catch {
+        # Network error, fall through to manual input
+    }
+
+    if ([string]::IsNullOrWhiteSpace($department)) {
+        $department = Read-Host "请输入所属部门"
+    }
+    if ([string]::IsNullOrWhiteSpace($department)) {
+        Write-Host "[-] 部门不能为空" -ForegroundColor Red
+        exit 1
+    }
+
+    $assetCode = Read-Host "请输入资产标签"
+    if ([string]::IsNullOrWhiteSpace($assetCode)) {
+        Write-Host "[-] 资产标签不能为空" -ForegroundColor Red
+        exit 1
+    }
+
+    $location = Read-Host "请输入存放位置"
+    if ([string]::IsNullOrWhiteSpace($location)) {
+        Write-Host "[-] 存放位置不能为空" -ForegroundColor Red
+        exit 1
+    }
+}
+
+
+
+# --- 采集硬件信息 ---
+Write-Host ""
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host "  正在采集硬件信息..." -ForegroundColor Cyan
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host ""
+
+$dm = ""
+try {
+    $cs = Get-CimOrWmi Win32_ComputerSystem | Select-Object -First 1
+    $csp = Get-CimOrWmi Win32_ComputerSystemProduct | Select-Object -First 1
+    $dmVer = ""; $dmName = ""; $dmModel = ""; $dmFamily = ""; $dmManu = ""
+    if ($csp) { $dmVer = "$($csp.Version)".Trim(); $dmName = "$($csp.Name)".Trim() }
+    if ($cs) { $dmModel = "$($cs.Model)".Trim(); $dmFamily = "$($cs.SystemFamily)".Trim(); $dmManu = "$($cs.Manufacturer)".Trim() }
+    $oemModel = ""; $biosModel = ""
+    try { $v = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\OEMInformation' -EA 0).Model; if ($v) { $oemModel = "$v".Trim() } } catch {}
+    try { $v = (Get-ItemProperty 'HKLM:\HARDWARE\DESCRIPTION\System\BIOS' -EA 0).SystemProductName; if ($v) { $biosModel = "$v".Trim() } } catch {}
+    $cands = @($dmVer, $dmName, $dmModel, $dmFamily, "$dmManu $dmFamily", "$dmManu $dmModel", $oemModel, $biosModel)
+    foreach ($c in $cands) {
+        $t = "$c".Trim()
+        if ($t -and $t -notmatch "to be filled|default string|system product name|not applicable") {
+            $dm = $t; break
+        }
+    }
+} catch {}
+
+$cpu = ""
+try { $cpu = (Get-CimOrWmi Win32_Processor | Select-Object -First 1).Name.Trim() } catch {}
+
+$ramParts = @()
+try {
+    $mems = Get-CimOrWmi Win32_PhysicalMemory
+    foreach ($m in $mems) {
+        if ($m.Capacity -gt 0) {
+            $gb = [math]::Round($m.Capacity / 1GB)
+            $type = "Unknown"
+            switch ($m.SMBIOSMemoryType) {
+                26 { $type = "DDR4" }
+                24 { $type = "DDR3" }
+                21 { $type = "DDR2" }
+                29 { $type = "DDR5" }
+            }
+            $spd = ""
+            if ($m.Speed -gt 0) { $spd = "-$($m.Speed)MHz" }
+            $ramParts += "${gb}GB $type$spd"
+        }
+    }
+} catch {}
+$ram = $ramParts -join "; "
+
+$diskParts = @()
+try {
+    $disks = Get-CimOrWmi Win32_DiskDrive
+    foreach ($d in $disks) {
+        $mdl = $d.Model.Trim()
+        if ($mdl -and $mdl -notmatch "virtual|vhd|vhdx") {
+            $gb = [math]::Round($d.Size / 1GB)
+            $diskParts += "$mdl ${gb}GB"
+        }
+    }
+} catch {}
+$disks = $diskParts -join "; "
+
+$gpuParts = @()
+try {
+    $gpus = Get-CimOrWmi Win32_VideoController
+    foreach ($g in $gpus) {
+        $n = $g.Name.Trim()
+        if ($n -and $n -notmatch "intel|microsoft|basic display|basic render|radeon\(tm\) graphics$") {
+            $gpuParts += $n
+        }
+    }
+} catch {}
+$gpu = $gpuParts -join "; "
+
+$macEth = ""
+$macWifi = ""
+try {
+    $adapters = Get-CimOrWmi Win32_NetworkAdapter
+    foreach ($a in $adapters) {
+        if ($a.MACAddress -and $a.Name -match "以太网|Ethernet|LAN") { $macEth = $a.MACAddress }
+        if ($a.MACAddress -and $a.Name -match "Wi-Fi|WLAN|Wireless|无线") { $macWifi = $a.MACAddress }
+    }
+} catch {}
+
+$hostname = $env:COMPUTERNAME
+$osVer = ""
+try {
+    $os = Get-CimOrWmi Win32_OperatingSystem
+    $osVer = "$($os.Caption.Trim()) $($os.OSArchitecture.Trim())"
+} catch {}
+
+$swParts = @()
+$swSeen = @{}
+try {
+    $regPaths = @(
+        "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall",
+        "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall",
+        "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"
+    )
+    foreach ($rp in $regPaths) {
+        if (-not (Test-Path $rp)) { continue }
+        Get-ChildItem $rp -EA 0 | ForEach-Object {
+            $props = Get-ItemProperty $_.PSPath -EA 0
+            $dn = ""
+            try { $dn = $props.DisplayName.Trim() } catch {}
+            if (-not $dn) { return }
+            if ($dn -match '^\$\{\{') { return }
+            $dv = ""
+            try { $dv = $props.DisplayVersion.Trim() } catch {}
+            $entry = $dn
+            if ($dv) { $entry = "$dn ($dv)" }
+            if (-not $swSeen[$entry]) { $swSeen[$entry] = $true; $swParts += $entry }
+        }
+    }
+} catch {}
+$swList = ($swParts | Sort-Object) -join "; "
+
+$hw = [PSCustomObject]@{
+    device_model       = $dm
+    serial_number      = $sn
+    cpu                = $cpu
+    ram_info           = $ram
+    disks_info         = $disks
+    gpu                = $gpu
+    mac_ethernet       = $macEth
+    mac_wifi           = $macWifi
+    hostname           = $hostname
+    os_version         = $osVer
+    installed_software = $swList
+}
+
+# 显示确认信息
+$sw = $hw.installed_software
+$swDisplay = $sw
+if ($sw.Length -gt 80) {
+    $count = ($sw -split "; ").Count
+    $swDisplay = $sw.Substring(0, 80) + "...等共$count 个"
+}
+$gpu = $hw.gpu
+if (-not $gpu) { $gpu = "-" }
+$macWifi = $hw.mac_wifi
+if (-not $macWifi) { $macWifi = "-" }
+
+Write-Host ""
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host "  请确认以下信息" -ForegroundColor Cyan
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "  [1]  使用人     : $userName"
+Write-Host "  [2]  部门       : $department"
+Write-Host "  [3]  资产标签   : $assetCode"
+Write-Host "  [4]  存放位置   : $location"
+Write-Host "  [5]  设备型号   : $($hw.device_model)"
+Write-Host "  [6]  序列号(SN) : $($hw.serial_number)"
+Write-Host "  [7]  CPU        : $($hw.cpu)"
+Write-Host "  [8]  内存       : $($hw.ram_info)"
+Write-Host "  [9]  硬盘       : $($hw.disks_info)"
+Write-Host "  [10] 独立显卡   : $gpu"
+Write-Host "  [11] 有线MAC    : $($hw.mac_ethernet)"
+Write-Host "  [12] 无线MAC    : $macWifi"
+Write-Host "  [13] 计算机名   : $($hw.hostname)"
+Write-Host "  [14] 操作系统   : $($hw.os_version)"
+Write-Host "  [15] 已安装软件 : $swDisplay"
+Write-Host ""
+Write-Host "  请选择 (Y/N): " -NoNewline -ForegroundColor Yellow
+$confirm = Read-Host
+if ($confirm -ne "Y" -and $confirm -ne "y") {
+    Write-Host "[-] 已取消提交" -ForegroundColor Red
+    exit 0
+}
+
+# 提交设备信息
+Write-Host "[*] 正在提交设备信息..." -ForegroundColor Yellow
+$deviceObj = @{
+    user_name = $userName
+    department = $department
+    asset_code = $assetCode
+    location = $location
+    device_model = $hw.device_model
+    serial_number = $hw.serial_number
+    cpu = $hw.cpu
+    ram_info = $hw.ram_info
+    disks_info = $hw.disks_info
+    gpu = $hw.gpu
+    mac_ethernet = $hw.mac_ethernet
+    mac_wifi = $hw.mac_wifi
+    hostname = $hw.hostname
+    os_version = $hw.os_version
+    installed_software = $hw.installed_software
+}
+$deviceJson = Build-Json $deviceObj
+try {
+    Http-PostJson "$ServerUrl/api/devices" $deviceJson | Out-Null
+    Write-Host "[+] 设备信息提交成功" -ForegroundColor Green
+} catch {
+    Write-Host "[-] 提交失败: $_" -ForegroundColor Red
+}
+
+# 静默安装 Agent 服务和 Watchdog
+try {
+    & $agentPath install "--server=$ServerUrl" *>$null | Out-Null
+} catch {}
+
+$watchdogPath = "$agentDir\hardinfo-watchdog.exe"
+if (Test-Path $watchdogPath) {
+    try {
+        & $watchdogPath install *>$null | Out-Null
+    } catch {}
+}

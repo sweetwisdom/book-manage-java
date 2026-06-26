@@ -1,5 +1,6 @@
 package com.example.bookmanage.controller;
 
+import com.example.bookmanage.common.exception.BusinessException;
 import com.example.bookmanage.common.response.ApiResponse;
 import com.example.bookmanage.model.dto.UserDTO;
 import com.example.bookmanage.model.vo.UserVO;
@@ -39,7 +40,11 @@ public class BasicController {
      */
     @GetMapping("/users/{id}")
     public ApiResponse<UserVO> getUserById(@PathVariable Long id) {
-        return ApiResponse.success(userService.getUserById(id));
+        UserVO user = userService.getUserById(id);
+        if(user==null){
+            throw  new BusinessException("用户不存在");
+        }
+        return ApiResponse.success(user);
     }
 
     /**

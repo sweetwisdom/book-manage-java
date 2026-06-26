@@ -1,6 +1,7 @@
 package com.example.bookmanage.common.exception;
 
 import com.example.bookmanage.common.response.ApiResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -10,6 +11,7 @@ import java.util.stream.Collectors;
 /**
  * 全局异常处理器
  */
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -18,6 +20,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(BusinessException.class)
     public ApiResponse<?> handleBusinessException(BusinessException e) {
+        log.warn("业务异常: code={}, message={}", e.getCode(), e.getMessage());
         return ApiResponse.error(e.getCode(), e.getMessage());
     }
 
@@ -29,6 +32,7 @@ public class GlobalExceptionHandler {
         String message = e.getBindingResult().getAllErrors().stream()
                 .map(error -> error.getDefaultMessage())
                 .collect(Collectors.joining(", "));
+        log.warn("参数校验失败: {}", message);
         return ApiResponse.error(400, message);
     }
 
@@ -37,6 +41,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(RuntimeException.class)
     public ApiResponse<?> handleRuntimeException(RuntimeException e) {
+        log.error("运行时异常", e);
         return ApiResponse.error(500, e.getMessage());
     }
 }
