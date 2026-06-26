@@ -15,3 +15,5 @@ logging:
   level:
     root: INFO
     com.example: DEBUG
+  file:
+    name: logs/app.log
