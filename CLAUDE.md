@@ -6,6 +6,8 @@
 - 包名: com.example.bookmanage
 
 ## 目录结构（分层架构）
+项目当前保留分层目录结构。不要在没有明确要求时改成按业务领域分包。
+
 ```
 src/main/java/com/example/bookmanage/
 ├── BookManageApplication.java      # 启动类
@@ -39,6 +41,10 @@ src/main/java/com/example/bookmanage/
 - MySQL
 - Hutool 5.8.35
 - Lombok 1.18.36
+
+## 项目偏好
+- 保留当前分层架构，不主动改成按业务模块分包。
+- 当前项目使用 JDK 11；依赖注入风格保持现有写法，不主动改成构造器注入或 Java 新版本写法。
 
 ## 常用命令
 ```bash

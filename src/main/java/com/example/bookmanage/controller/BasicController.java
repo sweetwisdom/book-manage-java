@@ -1,22 +1,25 @@
 package com.example.bookmanage.controller;
 
 import com.example.bookmanage.common.exception.BusinessException;
+import com.example.bookmanage.common.exception.ErrorCode;
 import com.example.bookmanage.common.response.ApiResponse;
+import com.example.bookmanage.common.response.PageResponse;
 import com.example.bookmanage.model.dto.UserDTO;
+import com.example.bookmanage.model.dto.UserQueryDTO;
 import com.example.bookmanage.model.vo.UserVO;
 import com.example.bookmanage.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-
-import java.util.List;
 
 /**
  * 基础控制器 - 处理用户相关请求
  */
 @Slf4j
+@Validated
 @RestController
 @RequestMapping("/api")
 public class BasicController {
@@ -25,13 +28,14 @@ public class BasicController {
     private UserService userService;
 
     /**
-     * 获取所有用户
-     * GET /api/users
+     * 分页查询用户
+     * GET /api/users?pageNum=1&pageSize=10&name=xxx
      */
     @GetMapping("/users")
-    public ApiResponse<List<UserVO>> getAllUsers() {
-        log.info("获取所有用户");
-        return ApiResponse.success(userService.getAllUsers());
+    public ApiResponse<PageResponse<UserVO>> getUsers(@Valid UserQueryDTO queryDTO) {
+        log.info("分页查询用户: pageNum={}, pageSize={}, name={}",
+                queryDTO.getPageNum(), queryDTO.getPageSize(), queryDTO.getName());
+        return ApiResponse.success(userService.getUserPage(queryDTO));
     }
 
     /**
@@ -42,7 +46,7 @@ public class BasicController {
     public ApiResponse<UserVO> getUserById(@PathVariable Long id) {
         UserVO user = userService.getUserById(id);
         if(user==null){
-            throw  new BusinessException("用户不存在");
+            throw  new BusinessException(ErrorCode.USER_NOT_FOUND);
         }
         return ApiResponse.success(user);
     }

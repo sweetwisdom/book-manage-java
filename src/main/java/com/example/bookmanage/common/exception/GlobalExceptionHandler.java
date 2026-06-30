@@ -1,7 +1,9 @@
 package com.example.bookmanage.common.exception;
 
+import com.example.bookmanage.common.config.AppProperties;
 import com.example.bookmanage.common.response.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -14,6 +16,9 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @Autowired
+    private AppProperties appProperties;
 
     /**
      * 处理业务异常
@@ -33,7 +38,7 @@ public class GlobalExceptionHandler {
                 .map(error -> error.getDefaultMessage())
                 .collect(Collectors.joining(", "));
         log.warn("参数校验失败: {}", message);
-        return ApiResponse.error(400, message);
+        return ApiResponse.error(ErrorCode.PARAM_ERROR, message);
     }
 
     /**
@@ -42,6 +47,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RuntimeException.class)
     public ApiResponse<?> handleRuntimeException(RuntimeException e) {
         log.error("运行时异常", e);
-        return ApiResponse.error(500, e.getMessage());
+        return ApiResponse.error(ErrorCode.SYSTEM_ERROR, appProperties.getApi().getSystemErrorMessage());
     }
 }

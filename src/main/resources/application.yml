@@ -11,6 +11,11 @@ spring:
     username: root
     password: ${DB_PASSWORD:123456}  # 环境变量，默认值
 
+app:
+  api:
+    trace-header-name: X-Trace-Id
+    system-error-message: 系统异常，请稍后再试
+
 logging:
   level:
     root: INFO

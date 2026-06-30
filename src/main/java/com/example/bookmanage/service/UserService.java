@@ -1,7 +1,9 @@
 package com.example.bookmanage.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.example.bookmanage.common.response.PageResponse;
 import com.example.bookmanage.model.dto.UserDTO;
+import com.example.bookmanage.model.dto.UserQueryDTO;
 import com.example.bookmanage.model.entity.User;
 import com.example.bookmanage.model.vo.UserVO;
 
@@ -16,6 +18,11 @@ public interface UserService extends IService<User> {
      * 获取所有用户
      */
     List<UserVO> getAllUsers();
+
+    /**
+     * 分页查询用户
+     */
+    PageResponse<UserVO> getUserPage(UserQueryDTO queryDTO);
 
     /**
      * 根据ID获取用户
