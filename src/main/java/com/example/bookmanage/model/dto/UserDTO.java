@@ -1,5 +1,6 @@
 package com.example.bookmanage.model.dto;
 
+import lombok.Data;
 import lombok.Getter;
 
 import javax.validation.constraints.NotBlank;
@@ -8,7 +9,7 @@ import javax.validation.constraints.Min;
 /**
  * 用户DTO - 接收前端数据
  */
-@Getter
+@Data
 public class UserDTO {
 
     // Getters and Setters
@@ -18,11 +19,4 @@ public class UserDTO {
     @Min(value = 0, message = "年龄不能小于0")
     private Integer age;
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setAge(Integer age) {
-        this.age = age;
-    }
 }

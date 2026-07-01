@@ -11,12 +11,14 @@
 - 启动类: `com.example.bookmanage.BookManageApplication`
 - 默认端口: `8080`
 - 数据库: MySQL，连接配置在 `src/main/resources/application.yml`
+- 数据库迁移: Flyway，迁移脚本位于 `src/main/resources/db/migration`
 
 ## 技术栈
 
 - Spring Boot `2.7.6`
 - MyBatis-Plus `3.5.15`
 - MySQL Connector/J
+- Flyway
 - Hutool `5.8.35`
 - Lombok `1.18.36`
 - Spring Validation
@@ -46,6 +48,7 @@ src/main/java/com/example/bookmanage/
 其他目录:
 
 - `src/main/resources/application.yml`: 应用配置。
+- `src/main/resources/db/migration/`: Flyway 数据库迁移脚本。
 - `src/main/resources/static/`: 静态页面资源。
 - `src/test/java/`: 单元测试和集成测试。
 - `doc/`: 项目学习笔记和补充文档。
@@ -76,6 +79,7 @@ mvn clean package
 - MySQL 默认连接: `jdbc:mysql://localhost:3306/test`
 - 默认用户名: `root`
 - 密码读取: `${DB_PASSWORD:123456}`
+- Flyway 默认启用，迁移脚本位置: `classpath:db/migration`。
 - 不要把真实密码、令牌或个人环境配置写入 Git。
 - 如需修改本地数据库密码，优先通过环境变量 `DB_PASSWORD`，不要硬编码到 `application.yml`。
 
@@ -128,6 +132,10 @@ Controller 不直接返回裸对象。新增接口应保持统一响应结构，
 - 查询返回给接口前应转换为 VO，不要直接返回 Entity。
 - 新增或修改数据的方法根据业务一致性要求添加 `@Transactional`。
 - 不在代码中写死数据库账号、密码或环境相关连接串。
+- 数据库结构变更必须通过 Flyway 迁移脚本管理，不直接修改已提交并已执行过的历史迁移。
+- 新增迁移脚本命名遵循 Flyway 规范，例如 `V2__create_book_tables.sql`。
+- 迁移脚本应放在 `src/main/resources/db/migration/`，并确保 SQL 对 MySQL 兼容。
+- 修改 Entity、DTO、VO 或业务逻辑时，如果涉及表结构变更，应同步新增 Flyway 脚本和相关测试。
 
 ## 测试要求
 
@@ -158,6 +166,8 @@ Controller 不直接返回裸对象。新增接口应保持统一响应结构，
 ## 当前项目注意点
 
 - `application.yml` 默认使用本地 MySQL `test` 库，运行应用前需要确认数据库可用。
+- Flyway 当前配置为 `enabled: true`，`baseline-on-migrate: true`，`validate-on-migrate: true`。
+- 已有初始化脚本 `src/main/resources/db/migration/V1__init_schema.sql`，后续结构变更应新增更高版本脚本。
 - `BasicController` 的请求前缀是 `/api`，新增用户相关接口应保持路径风格一致。
 - `ApiResponse` 当前成功码为 `200`，参数错误通常使用 `400`，业务或运行时错误按异常处理返回。
 - `UserServiceImpl` 当前使用 Entity 到 VO 的转换方法；新增字段时要同步 DTO、Entity、VO、转换逻辑和测试。
