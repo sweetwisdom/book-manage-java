@@ -226,18 +226,7 @@ public class BookServiceImpl extends ServiceImpl<BookMapper, Book> implements Bo
      */
     private BookVO convertToVO(Book book) {
         BookVO vo = new BookVO();
-        vo.setId(book.getId());
-        vo.setIsbn(book.getIsbn());
-        vo.setTitle(book.getTitle());
-        vo.setAuthor(book.getAuthor());
-        vo.setPublisher(book.getPublisher());
-        vo.setPublishDate(book.getPublishDate());
-        vo.setCategoryId(book.getCategoryId());
-        vo.setDescription(book.getDescription());
-        vo.setCoverUrl(book.getCoverUrl());
-        vo.setStatus(book.getStatus());
-        vo.setCreateTime(book.getCreateTime());
-        vo.setUpdateTime(book.getUpdateTime());
+        BeanUtils.copyProperties(book, vo);
         return vo;
     }
 }

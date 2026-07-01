@@ -82,9 +82,7 @@ public class UserServiceImpl  extends ServiceImpl<UserMapper,User> implements  U
      */
     private UserVO convertToVO(User user) {
         UserVO vo = new UserVO();
-        vo.setId(user.getId());
-        vo.setName(user.getName());
-        vo.setAge(user.getAge());
+        BeanUtils.copyProperties(user, vo);
         return vo;
     }
 }

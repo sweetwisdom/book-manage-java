@@ -183,11 +183,7 @@ public class BookCategoryServiceImpl extends ServiceImpl<BookCategoryMapper, Boo
      */
     private BookCategoryVO convertToVO(BookCategory category) {
         BookCategoryVO vo = new BookCategoryVO();
-        vo.setId(category.getId());
-        vo.setName(category.getName());
-        vo.setParentId(category.getParentId());
-        vo.setSortOrder(category.getSortOrder());
-        vo.setStatus(category.getStatus());
+        BeanUtils.copyProperties(category, vo);
         return vo;
     }
 }
