@@ -33,4 +33,14 @@ public interface UserService extends IService<User> {
      * 创建用户
      */
     UserVO createUser(UserDTO userDTO);
+
+    /**
+     * 更新用户
+     */
+    UserVO updateUser(Long id, UserDTO userDTO);
+
+    /**
+     * 删除用户
+     */
+    void deleteUser(Long id);
 }

@@ -70,11 +70,30 @@ public class UserServiceImpl  extends ServiceImpl<UserMapper,User> implements  U
     @Transactional
     public UserVO createUser(UserDTO userDTO) {
         User user = new User();
-        // user.setName(userDTO.getName());
-        // user.setAge(userDTO.getAge());
-        BeanUtils.copyProperties(userDTO,user);
+        BeanUtils.copyProperties(userDTO, user);
         this.save(user);
         return convertToVO(user);
+    }
+
+    @Override
+    @Transactional
+    public UserVO updateUser(Long id, UserDTO userDTO) {
+        User existing = baseMapper.selectById(id);
+        if (existing == null) {
+            return null;
+        }
+        User user = new User();
+        BeanUtils.copyProperties(userDTO, user);
+        user.setId(id);
+        this.updateById(user);
+        User updated = baseMapper.selectById(id);
+        return convertToVO(updated);
+    }
+
+    @Override
+    @Transactional
+    public void deleteUser(Long id) {
+        this.removeById(id);
     }
 
     /**
