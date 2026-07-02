@@ -26,6 +26,8 @@ app:
     expire-seconds: ${AUTH_TOKEN_EXPIRE_SECONDS:7200}
     token-header: Authorization
     token-prefix: "Bearer "
+  file:
+    upload-dir: "E://CODE//大佬//book-manage//target//upload"
 
 logging:
   level:
