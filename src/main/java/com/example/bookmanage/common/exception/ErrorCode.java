@@ -15,6 +15,16 @@ public enum ErrorCode {
     CATEGORY_HAS_CHILDREN(400, "分类下存在子分类，无法删除"),
     CATEGORY_HAS_BOOKS(400, "分类下存在图书，无法删除"),
     CATEGORY_NAME_DUPLICATE(400, "同级分类下名称已存在"),
+    STOCK_NOT_FOUND(404, "库存记录不存在"),
+    BORROW_RECORD_NOT_FOUND(404, "借阅记录不存在"),
+    BOOK_NOT_AVAILABLE(400, "图书库存不足，无可借数量"),
+    BORROW_LIMIT_EXCEEDED(400, "借阅数量已达上限"),
+    USER_HAS_OVERDUE(400, "用户存在逾期未还记录，无法继续借阅"),
+    BORROW_RULE_NOT_FOUND(404, "借阅规则不存在"),
+    BORROW_RULE_DISABLED(400, "借阅规则已禁用，无法借阅"),
+    ROLE_DUPLICATE(400, "该角色的借阅规则已存在"),
+    ALREADY_RETURNED(400, "该借阅记录已归还，不可重复操作"),
+    RENEW_LIMIT_EXCEEDED(400, "续借次数已达上限"),
     SYSTEM_ERROR(500, "系统异常");
 
     private final int code;

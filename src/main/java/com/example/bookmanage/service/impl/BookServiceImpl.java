@@ -15,6 +15,7 @@ import com.example.bookmanage.model.mapper.BookCategoryMapper;
 import com.example.bookmanage.model.mapper.BookMapper;
 import com.example.bookmanage.model.vo.BookVO;
 import com.example.bookmanage.service.BookService;
+import com.example.bookmanage.service.BookStockService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,6 +39,9 @@ public class BookServiceImpl extends ServiceImpl<BookMapper, Book> implements Bo
 
     @Autowired
     private BookCategoryMapper bookCategoryMapper;
+
+    @Autowired
+    private BookStockService bookStockService;
 
     @Override
     public PageResponse<BookVO> getBookPage(BookQueryDTO queryDTO) {
@@ -106,6 +110,7 @@ public class BookServiceImpl extends ServiceImpl<BookMapper, Book> implements Bo
         }
 
         this.save(book);
+        bookStockService.initStock(book.getId(), 0);
         BookVO vo = convertToVO(book);
         fillCategoryNames(Collections.singletonList(vo));
         return vo;
