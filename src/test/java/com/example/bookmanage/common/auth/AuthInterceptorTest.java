@@ -32,7 +32,7 @@ class AuthInterceptorTest {
     @Test
     void preHandle_ShouldSetCurrentUser_WhenTokenValid() throws Exception {
         AppProperties appProperties = createAppProperties();
-        AuthTokenUtil authTokenUtil = new AuthTokenUtil(appProperties, new ObjectMapper());
+        AuthTokenUtil authTokenUtil = new AuthTokenUtil(appProperties);
         AuthInterceptor authInterceptor = new AuthInterceptor(appProperties, authTokenUtil, new ObjectMapper());
         String token = authTokenUtil.createToken(new AuthUser(1L, "admin", "ADMIN"));
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/users");
@@ -48,7 +48,7 @@ class AuthInterceptorTest {
 
     private AuthInterceptor createAuthInterceptor() {
         AppProperties appProperties = createAppProperties();
-        AuthTokenUtil authTokenUtil = new AuthTokenUtil(appProperties, new ObjectMapper());
+        AuthTokenUtil authTokenUtil = new AuthTokenUtil(appProperties);
         return new AuthInterceptor(appProperties, authTokenUtil, new ObjectMapper());
     }
 

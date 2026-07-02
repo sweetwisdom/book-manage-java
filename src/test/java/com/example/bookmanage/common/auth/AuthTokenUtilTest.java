@@ -1,7 +1,6 @@
 package com.example.bookmanage.common.auth;
 
 import com.example.bookmanage.common.config.AppProperties;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,6 +45,6 @@ class AuthTokenUtilTest {
         AppProperties appProperties = new AppProperties();
         appProperties.getAuth().setSecret("test-secret");
         appProperties.getAuth().setExpireSeconds(expireSeconds);
-        return new AuthTokenUtil(appProperties, new ObjectMapper());
+        return new AuthTokenUtil(appProperties);
     }
 }

@@ -33,7 +33,7 @@ class AuthServiceImplTest {
         AppProperties appProperties = new AppProperties();
         appProperties.getAuth().setSecret("test-secret");
         appProperties.getAuth().setExpireSeconds(7200L);
-        AuthTokenUtil authTokenUtil = new AuthTokenUtil(appProperties, new com.fasterxml.jackson.databind.ObjectMapper());
+        AuthTokenUtil authTokenUtil = new AuthTokenUtil(appProperties);
         authService = new AuthServiceImpl(userMapper, authTokenUtil, appProperties);
     }
 
