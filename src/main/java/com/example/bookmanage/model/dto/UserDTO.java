@@ -19,4 +19,6 @@ public class UserDTO {
     @Min(value = 0, message = "年龄不能小于0")
     private Integer age;
 
+    private String role;
+
 }

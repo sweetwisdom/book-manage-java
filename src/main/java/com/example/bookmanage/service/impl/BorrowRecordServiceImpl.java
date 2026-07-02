@@ -215,7 +215,8 @@ public class BorrowRecordServiceImpl extends ServiceImpl<BorrowRecordMapper, Bor
             throw new BusinessException(ErrorCode.PARAM_ERROR, "只有借阅中的记录才能续借");
         }
 
-        String role = "DEFAULT";
+        User user = userMapper.selectById(record.getUserId());
+        String role = (user != null && user.getRole() != null) ? user.getRole() : "DEFAULT";
         BorrowRule rule = borrowRuleService.getRuleByRole(role);
         if (rule == null) {
             throw new BusinessException(ErrorCode.BORROW_RULE_NOT_FOUND);

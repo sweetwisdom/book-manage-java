@@ -70,7 +70,7 @@ class BorrowRecordServiceImplTest {
 
     @Test
     void borrowBook_ShouldSucceed() {
-        User user = new User().setId(1L).setName("张三");
+        User user = new User().setId(1L).setName("张三").setRole("DEFAULT");
         Book book = new Book().setId(100L).setTitle("测试图书").setStatus(1);
         BorrowRule rule = new BorrowRule()
                 .setId(1L).setRole("DEFAULT")
@@ -117,7 +117,7 @@ class BorrowRecordServiceImplTest {
 
     @Test
     void borrowBook_ShouldThrowException_WhenBookNotAvailable() {
-        User user = new User().setId(1L).setName("张三");
+        User user = new User().setId(1L).setName("张三").setRole("DEFAULT");
         Book book = new Book().setId(100L).setTitle("下架图书").setStatus(0);
 
         BorrowRecordCreateDTO dto = new BorrowRecordCreateDTO();
@@ -133,7 +133,7 @@ class BorrowRecordServiceImplTest {
 
     @Test
     void borrowBook_ShouldThrowException_WhenStockInsufficient() {
-        User user = new User().setId(1L).setName("张三");
+        User user = new User().setId(1L).setName("张三").setRole("DEFAULT");
         Book book = new Book().setId(100L).setTitle("测试图书").setStatus(1);
         BorrowRule rule = new BorrowRule()
                 .setId(1L).setRole("DEFAULT")
@@ -207,6 +207,7 @@ class BorrowRecordServiceImplTest {
                 .setStatus(1);
 
         when(borrowRecordMapper.selectById(1L)).thenReturn(record);
+        when(userMapper.selectById(1L)).thenReturn(new User().setId(1L).setRole("DEFAULT"));
         when(borrowRuleService.getRuleByRole("DEFAULT")).thenReturn(rule);
         when(borrowRecordMapper.updateById(any(BorrowRecord.class))).thenReturn(1);
 
@@ -229,6 +230,7 @@ class BorrowRecordServiceImplTest {
                 .setStatus(1);
 
         when(borrowRecordMapper.selectById(1L)).thenReturn(record);
+        when(userMapper.selectById(1L)).thenReturn(new User().setId(1L).setRole("DEFAULT"));
         when(borrowRuleService.getRuleByRole("DEFAULT")).thenReturn(rule);
 
         assertThatThrownBy(() -> borrowRecordService.renewBook(1L))
