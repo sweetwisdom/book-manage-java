@@ -128,6 +128,7 @@ Controller 不直接返回裸对象。新增接口应保持统一响应结构，
 
 ## 数据访问与事务
 
+
 - 优先使用 MyBatis-Plus 的 `ServiceImpl`、`BaseMapper` 和内置 CRUD。
 - 查询返回给接口前应转换为 VO，不要直接返回 Entity。
 - 新增或修改数据的方法根据业务一致性要求添加 `@Transactional`。
@@ -136,6 +137,12 @@ Controller 不直接返回裸对象。新增接口应保持统一响应结构，
 - 新增迁移脚本命名遵循 Flyway 规范，例如 `V2__create_book_tables.sql`。
 - 迁移脚本应放在 `src/main/resources/db/migration/`，并确保 SQL 对 MySQL 兼容。
 - 修改 Entity、DTO、VO 或业务逻辑时，如果涉及表结构变更，应同步新增 Flyway 脚本和相关测试。
+
+### 当前数据库设计
+
+`./doc/数据库设计.md`
+`./doc/数据库逻辑.md`
+
 
 ## 测试要求
 
@@ -172,3 +179,10 @@ Controller 不直接返回裸对象。新增接口应保持统一响应结构，
 - `ApiResponse` 当前成功码为 `200`，参数错误通常使用 `400`，业务或运行时错误按异常处理返回。
 - `UserServiceImpl` 当前使用 Entity 到 VO 的转换方法；新增字段时要同步 DTO、Entity、VO、转换逻辑和测试。
 - `doc/` 下是项目笔记，修改前确认是否属于用户正在维护的学习资料。
+
+
+## AI 留痕规则
+
+AI 协作过程中的上下文保存、Plan 落盘、Prompt 归档、AI 原始输出、人工修改、diff/review 和阶段快照规则，请参阅 [RULES.md](RULES.md)。
+
+本文件只负责当前仓库的工程实现约定；`RULES.md` 负责跨 AI、跨会话、跨项目的留痕和产物持久化。
