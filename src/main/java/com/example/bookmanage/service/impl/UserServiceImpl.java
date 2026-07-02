@@ -10,6 +10,7 @@ import com.example.bookmanage.model.entity.User;
 import com.example.bookmanage.model.mapper.UserMapper;
 import com.example.bookmanage.service.UserService;
 import com.example.bookmanage.model.vo.UserVO;
+import cn.hutool.crypto.digest.BCrypt;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,6 +72,9 @@ public class UserServiceImpl  extends ServiceImpl<UserMapper,User> implements  U
     public UserVO createUser(UserDTO userDTO) {
         User user = new User();
         BeanUtils.copyProperties(userDTO, user);
+        if (StringUtils.hasText(userDTO.getPassword())) {
+            user.setPasswordHash(BCrypt.hashpw(userDTO.getPassword()));
+        }
         this.save(user);
         return convertToVO(user);
     }

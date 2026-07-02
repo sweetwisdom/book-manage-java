@@ -21,6 +21,11 @@ app:
   api:
     trace-header-name: X-Trace-Id
     system-error-message: 系统异常，请稍后再试
+  auth:
+    secret: ${AUTH_TOKEN_SECRET:book-manage-dev-secret}
+    expire-seconds: ${AUTH_TOKEN_EXPIRE_SECONDS:7200}
+    token-header: Authorization
+    token-prefix: "Bearer "
 
 logging:
   level:

@@ -8,6 +8,8 @@ public enum ErrorCode {
     SUCCESS(200, "success"),
     PARAM_ERROR(400, "参数错误"),
     BUSINESS_ERROR(400, "业务处理失败"),
+    LOGIN_FAILED(400, "用户名或密码错误"),
+    UNAUTHORIZED(401, "未登录或登录已过期"),
     USER_NOT_FOUND(404, "用户不存在"),
     BOOK_NOT_FOUND(404, "图书不存在"),
     CATEGORY_NOT_FOUND(404, "分类不存在"),

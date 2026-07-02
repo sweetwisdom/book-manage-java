@@ -1,6 +1,6 @@
 -- =============================================
 -- 测试数据批量插入脚本
--- 注意：执行前请确保 Flyway 迁移已全部执行（V1 ~ V3）
+-- 注意：执行前请确保 Flyway 迁移已全部执行（V1 ~ V5）
 -- 用法：直接在 MySQL 客户端执行此文件
 --   mysql -u root -p test < test-data.sql
 -- =============================================
@@ -8,18 +8,19 @@
 -- =============================================
 -- 1. 用户表测试数据
 -- =============================================
-INSERT INTO `user` (`id`, `name`, `age`, `role`, `remark`) VALUES
-(1,  '管理员',   30, 'ADMIN',   '系统管理员'),
-(2,  '张三',     25, 'VIP',     'VIP读者'),
-(3,  '李四',     22, 'DEFAULT', '普通读者，借阅记录良好'),
-(4,  '王五',     28, 'DEFAULT', '普通读者，有逾期记录'),
-(5,  '赵六',     20, 'DEFAULT', '新注册读者，无借阅记录'),
-(6,  '孙七',     35, 'TEACHER', '教师读者'),
-(7,  '周八',     19, 'STUDENT', '学生读者'),
-(8,  '吴九',     40, 'DEFAULT', '资深读者'),
-(9,  '郑十',     27, 'DEFAULT', '普通读者'),
-(10, '陈一',     23, 'DEFAULT', '普通读者')
-ON DUPLICATE KEY UPDATE `name` = VALUES(`name`);
+-- 默认演示密码：123456
+INSERT INTO `user` (`id`, `name`, `age`, `role`, `password_hash`, `remark`) VALUES
+(1,  '管理员',   30, 'ADMIN',   '$2a$10$98.PnFOdPz4NEpH7PIeeSuqnOKz0qI6pK2itU8eGx4.ORJffus17S', '系统管理员'),
+(2,  '张三',     25, 'VIP',     '$2a$10$98.PnFOdPz4NEpH7PIeeSuqnOKz0qI6pK2itU8eGx4.ORJffus17S', 'VIP读者'),
+(3,  '李四',     22, 'DEFAULT', '$2a$10$98.PnFOdPz4NEpH7PIeeSuqnOKz0qI6pK2itU8eGx4.ORJffus17S', '普通读者，借阅记录良好'),
+(4,  '王五',     28, 'DEFAULT', '$2a$10$98.PnFOdPz4NEpH7PIeeSuqnOKz0qI6pK2itU8eGx4.ORJffus17S', '普通读者，有逾期记录'),
+(5,  '赵六',     20, 'DEFAULT', '$2a$10$98.PnFOdPz4NEpH7PIeeSuqnOKz0qI6pK2itU8eGx4.ORJffus17S', '新注册读者，无借阅记录'),
+(6,  '孙七',     35, 'TEACHER', '$2a$10$98.PnFOdPz4NEpH7PIeeSuqnOKz0qI6pK2itU8eGx4.ORJffus17S', '教师读者'),
+(7,  '周八',     19, 'STUDENT', '$2a$10$98.PnFOdPz4NEpH7PIeeSuqnOKz0qI6pK2itU8eGx4.ORJffus17S', '学生读者'),
+(8,  '吴九',     40, 'DEFAULT', '$2a$10$98.PnFOdPz4NEpH7PIeeSuqnOKz0qI6pK2itU8eGx4.ORJffus17S', '资深读者'),
+(9,  '郑十',     27, 'DEFAULT', '$2a$10$98.PnFOdPz4NEpH7PIeeSuqnOKz0qI6pK2itU8eGx4.ORJffus17S', '普通读者'),
+(10, '陈一',     23, 'DEFAULT', '$2a$10$98.PnFOdPz4NEpH7PIeeSuqnOKz0qI6pK2itU8eGx4.ORJffus17S', '普通读者')
+ON DUPLICATE KEY UPDATE `name` = VALUES(`name`), `password_hash` = VALUES(`password_hash`);
 
 -- =============================================
 -- 2. 图书分类表测试数据

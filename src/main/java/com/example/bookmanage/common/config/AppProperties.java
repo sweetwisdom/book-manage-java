@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 public class AppProperties {
 
     private Api api = new Api();
+    private Auth auth = new Auth();
 
     public Api getApi() {
         return api;
@@ -18,6 +19,14 @@ public class AppProperties {
 
     public void setApi(Api api) {
         this.api = api;
+    }
+
+    public Auth getAuth() {
+        return auth;
+    }
+
+    public void setAuth(Auth auth) {
+        this.auth = auth;
     }
 
     public static class Api {
@@ -40,6 +49,49 @@ public class AppProperties {
 
         public void setSystemErrorMessage(String systemErrorMessage) {
             this.systemErrorMessage = systemErrorMessage;
+        }
+    }
+
+    public static class Auth {
+
+        private String secret = "book-manage-dev-secret";
+
+        private Long expireSeconds = 7200L;
+
+        private String tokenHeader = "Authorization";
+
+        private String tokenPrefix = "Bearer ";
+
+        public String getSecret() {
+            return secret;
+        }
+
+        public void setSecret(String secret) {
+            this.secret = secret;
+        }
+
+        public Long getExpireSeconds() {
+            return expireSeconds;
+        }
+
+        public void setExpireSeconds(Long expireSeconds) {
+            this.expireSeconds = expireSeconds;
+        }
+
+        public String getTokenHeader() {
+            return tokenHeader;
+        }
+
+        public void setTokenHeader(String tokenHeader) {
+            this.tokenHeader = tokenHeader;
+        }
+
+        public String getTokenPrefix() {
+            return tokenPrefix;
+        }
+
+        public void setTokenPrefix(String tokenPrefix) {
+            this.tokenPrefix = tokenPrefix;
         }
     }
 }
