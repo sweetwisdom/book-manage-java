@@ -16,6 +16,7 @@ public class User {
     private Integer age;
     private String role;
     private String passwordHash;
+    private String password;
 
 
 }

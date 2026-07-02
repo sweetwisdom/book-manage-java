@@ -33,6 +33,11 @@ public class AuthTokenUtil {
         this.objectMapper = objectMapper;
     }
 
+    /**
+     * 生成token
+     * @param authUser
+     * @return
+     */
     public String createToken(AuthUser authUser) {
         long now = Instant.now().getEpochSecond();
         long expireSeconds = appProperties.getAuth().getExpireSeconds();

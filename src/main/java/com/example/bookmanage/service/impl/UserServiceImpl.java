@@ -89,6 +89,9 @@ public class UserServiceImpl  extends ServiceImpl<UserMapper,User> implements  U
         User user = new User();
         BeanUtils.copyProperties(userDTO, user);
         user.setId(id);
+        if (StringUtils.hasText(userDTO.getPassword())) {
+            user.setPasswordHash(BCrypt.hashpw(userDTO.getPassword()));
+        }
         this.updateById(user);
         User updated = baseMapper.selectById(id);
         return convertToVO(updated);
